@@ -3,19 +3,6 @@ var nameInputEl = document.querySelector("#username");
 var repoContainerEl = document.querySelector("#repos-container");
 var repoSearchTerm = document.querySelector("#repo-search-term");
 
-var getUserRepos = function(user) {
-    // format the github api url
-    var apiUrl = "https://api.github.com/users/" + user + "/repos";
-
-    // make a request to the url
-    fetch(apiUrl).then(function(response) {
-        response.json().then(function(data) {
-            displayRepos(data, user);
-            console.log(data);
-        });
-    });
-};
-
 var formSubmitHandler = function(event) {
     event.preventDefault();
 
@@ -28,10 +15,37 @@ var formSubmitHandler = function(event) {
     } else {
         alert("Please enter a GitHub username");
     }
+};
 
+var getUserRepos = function(user) {
+    // format the github api url
+    var apiUrl = "https://api.github.com/users/" + user + "/repos";
+
+    // make a request to the url
+    fetch(apiUrl)
+        .then(function(response) {
+            // request was successful
+            if (response.ok) {
+                response.json().then(function(data) {
+                    displayRepos(data, user);
+                });
+            } else {
+                alert("Error: GitHub User Not Found");
+            }
+        })
+        .catch(function(error) {
+            // Notice this '.catch()' getting chained onto the end of the '.then()' method
+            alert("Unable to connect to GitHub");
+        });
+    
 };
 
 var displayRepos = function(repos, searchTerm) {
+    // check if api returned any repos
+    if (repos.length === 0) {
+        repoContainerEl.textContent = "No repositories found.";
+        return;
+    }
     // clear old content
     repoContainerEl.textContent = "";
     repoSearchTerm.textContent = searchTerm;
@@ -70,8 +84,6 @@ var displayRepos = function(repos, searchTerm) {
         // append container to the dom
         repoContainerEl.appendChild(repoEl);
     }
-    console.log(repos);
-    console.log(searchTerm);
 };
 
 userFormEl.addEventListener("submit", formSubmitHandler);
